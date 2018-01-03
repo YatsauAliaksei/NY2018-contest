@@ -14,9 +14,22 @@ import com.google.common.collect.Sets;
 
 public class WebBandog {
 
-    public int findWords(String pageURL, String word) {
+    private String basePage;
+    private String domain;
+
+    public WebBandog(String startPage) {
+        if (!startPage.matches("^https?://.*")) {
+            throw new IllegalArgumentException();
+        }
+        this.basePage = startPage;
+        int beginIndex = startPage.indexOf("/") + 2;
+        int endIndex = startPage.indexOf("/", beginIndex);
+        this.domain = startPage.substring(beginIndex, endIndex == -1 ? startPage.length() - 1 : endIndex);
+    }
+
+    public int findWords(String word) {
         Set<String> visited = Sets.newConcurrentHashSet();
-        return find(pageURL, word, visited);
+        return find(basePage, word, visited);
     }
 
     private int find(String pageURL, String word, Set<String> visited) {
@@ -35,7 +48,7 @@ public class WebBandog {
                 .thenApply(links ->
                         links.stream()
                                 .map(l -> l.attr("abs:href"))
-                                .filter(l -> l.matches("^https?://jprof.by.*"))
+                                .filter(l -> l.matches("^https?://" + domain + ".*"))
                                 .filter(l -> !l.matches(".*\\.(img|png|jpg)$"))
                                 .map(l -> find(l, word, visited))
                                 .mapToInt(Integer::valueOf)
@@ -80,7 +93,7 @@ public class WebBandog {
         try {
             return Jsoup.connect(URLDecoder.decode(pageURL, "UTF-8")).userAgent(userAgent).get();
         } catch (IOException ignored) {
-            System.out.println(ignored.getMessage());
+            System.out.println(ignored.getMessage() + " while getting [" + pageURL + "]");
         }
         return null;
     }
