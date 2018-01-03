@@ -42,7 +42,7 @@ public class WebBandog {
                                 .sum()
                 );
 
-        CompletableFuture<Integer> onPageFound = CompletableFuture.supplyAsync(() -> collectWords(doc, word));
+        CompletableFuture<Integer> onPageFound = CompletableFuture.supplyAsync(() -> matcherCount(doc, word));
 
         CompletableFuture.allOf(onPageLinksFound, onPageFound);
 
@@ -58,14 +58,10 @@ public class WebBandog {
     }
 
 
-    private int collectWords(Document doc, String word) {
+    private int matcherCount(Document doc, String word) {
         String fullPage = doc.outerHtml();
 //        fullPage = fullPage.replaceAll("[^A-Za-z0-9]", ""); // in case "moJA VAriable". Not found while testing.
 
-        return matcherCount(word, fullPage);
-    }
-
-    private int matcherCount(String word, String fullPage) {
         Matcher matcher = Pattern.compile(word, Pattern.CASE_INSENSITIVE).matcher(fullPage);
 
         int i = 0;
